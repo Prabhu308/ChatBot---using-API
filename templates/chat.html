@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ChatBot</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <style>
+        /* Custom styles */
+        .chat-bubble {
+            max-width: 75%;
+            padding: 10px 15px;
+            border-radius: 20px;
+            word-wrap: break-word;
+        }
+
+        .chat-bubble-user {
+            background-color: #1e293b; /* Darker blue-gray */
+            color: white;
+            margin-left: auto;
+        }
+
+        .chat-bubble-ai {
+            background-color: #374151; /* Slightly lighter blue-gray */
+            color: white;
+            margin-right: auto;
+        }
+
+        #chat_area {
+            overflow-y: auto;
+            height: calc(100vh - 200px);
+        }
+
+        #loading .lds-ellipsis div {
+            background-color: #4F46E5; /* Indigo */
+        }
+    </style>
+    <script>
+        $(document).ready(function () {
+            $('#submit').click(function () {
+                const user_input = $('#user_input').val();
+                $('#user_input').val('');
+
+                // Append user's message immediately
+                $('#chat_area').append(
+                    `<div class="chat-bubble chat-bubble-user mt-2">${user_input}</div>`
+                );
+
+                // Show loading animation
+                $('#loading').removeClass('hidden');
+
+                $.ajax({
+                    url: '/chat',
+                    type: 'POST',
+                    contentType: 'application/json',
+                    data: JSON.stringify({ user_input: user_input }),
+                    success: function (data) {
+                        // Hide loading animation
+                        $('#loading').addClass('hidden');
+
+                        // Append AI's response
+                        $('#chat_area').append(
+                            `<div class="chat-bubble chat-bubble-ai mt-2">${data.response}</div>`
+                        );
+
+                        // Auto-scroll to the bottom
+                        $('#chat_area').scrollTop($('#chat_area')[0].scrollHeight);
+                    },
+                    error: function (xhr, status, error) {
+                        console.error(error);
+                        $('#loading').addClass('hidden');
+                    }
+                });
+            });
+        });
+    </script>
+</head>
+
+<body class="bg-gray-900 text-white flex flex-col items-center">
+    <div class="container mx-auto px-4 py-8 bg-gray-800 rounded-lg shadow-lg max-w-3xl">
+        <h1 class="text-3xl font-bold text-center mb-4">
+            Online ChatBot 
+        </h1>
+
+        <!-- Chat Area -->
+        <div id="chat_area" class="bg-gray-700 rounded-lg p-4 overflow-y-auto">
+            <!-- Chat bubbles go here -->
+        </div>
+
+        <!-- Loading Animation -->
+        <div id="loading" class="flex justify-center items-center mt-4 hidden">
+            <div class="lds-ellipsis"><div></div><div></div><div></div><div></div></div>
+        </div>
+
+        <!-- Input Area -->
+        <div class="flex mt-4 w-full">
+            <input id="user_input" type="text" class="flex-1 p-4 rounded-l-lg border-none text-gray-800"
+                placeholder="Type your message...">
+            <button id="submit"
+                class="bg-indigo-600 p-4 rounded-r-lg text-white hover:bg-indigo-700 transition duration-300">
+                Send
+            </button>
+        </div>
+    </div>
+</body>
+
+</html>
